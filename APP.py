@@ -7,11 +7,11 @@ from datetime import datetime
 # Configurazione pagina
 st.set_page_config(page_title="Locala Data Cleaner", page_icon="🚀")
 
-st.title("🚀 Locala Report Transformer")
+st.title("COLLASSATORE")
 st.markdown("Trascina il file Excel e scarica il dataset pulito.")
 
 # 1. CARICAMENTO (Interfaccia Streamlit)
-uploaded_file = st.file_uploader("Carica il Datasetton (Excel o CSV)", type=['xlsx', 'csv'])
+uploaded_file = st.file_uploader("Carica il Datasettone (Excel o CSV)", type=['xlsx', 'csv'])
 
 if uploaded_file:
     try:
@@ -66,14 +66,14 @@ if uploaded_file:
             df_finale = df_finale[['Codice_Impianto', 'Data', 'Orario', 'Valore']].sort_values(by=['Codice_Impianto', 'Data', 'Orario'])
 
             # 4. DOWNLOAD DEL RISULTATO
-            st.success(f"✅ HA FUNZIONATO! Estratti {len(df_finale)} record.")
+            st.success(f"HA FUNZIONATO! Estratti {len(df_finale)} record.")
             
             # Prepariamo il CSV per il download
             csv_buffer = io.StringIO()
             df_finale.to_csv(csv_buffer, index=False, sep=';', decimal=',')
             
             st.download_button(
-                label="📥 SCARICA IL DATSETTINO",
+                label=" SCARICA IL DATSETTINO",
                 data=csv_buffer.getvalue(),
                 file_name="Datasettino_Pulito.csv",
                 mime="text/csv"
