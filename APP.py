@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 
 # Configurazione pagina
-st.set_page_config(page_title="Locala Data Cleaner", page_icon=" :) ")
+st.set_page_config(page_title="Locala Data Cleaner", page_icon=" 🦆 ")
 
 st.title("Collasso di Dataset Locala")
 st.markdown("Trascina il file Excel e scarica il dataset pulito.")
