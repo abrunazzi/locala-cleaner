@@ -5,9 +5,9 @@ import re
 from datetime import datetime
 
 # Configurazione pagina
-st.set_page_config(page_title="Locala Data Cleaner", page_icon="🚀")
+st.set_page_config(page_title="Locala Data Cleaner", page_icon=" :) ")
 
-st.title("COLLASSATORE")
+st.title("Collasso di Dataset Locala")
 st.markdown("Trascina il file Excel e scarica il dataset pulito.")
 
 # 1. CARICAMENTO (Interfaccia Streamlit)
@@ -21,7 +21,7 @@ if uploaded_file:
         else:
             df_raw = pd.read_csv(uploaded_file, sep=None, engine='python')
 
-        # 3. LOGICA DI PULIZIA (Il tuo codice originale)
+        # 3. LOGICA DI PULIZIA
         df_raw = df_raw.dropna(how='all', axis=1)
         col_id = df_raw.columns[0]
         df_raw = df_raw.rename(columns={col_id: 'Codice_Impianto'})
