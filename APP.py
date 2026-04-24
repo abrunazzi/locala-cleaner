@@ -10,18 +10,24 @@ st.set_page_config(page_title="Locala Data Cleaner", page_icon=" 🦆 ")
 st.title("Collasso di Dataset Locala")
 st.markdown("Trascina il file Excel e scarica il dataset pulito.")
 
-# 1. CARICAMENTO (Interfaccia Streamlit)
-uploaded_file = st.file_uploader("Carica il Datasettone (Excel o CSV)", type=['xlsx', 'csv'])
+# --- 1. CARICAMENTO FILE ---
+col1, col2 = st.columns(2)
+
+with col1:
+    uploaded_file = st.file_uploader("1. Carica il Datasettone (Obbligatorio)", type=['xlsx', 'csv'])
+
+with col2:
+    details_file = st.file_uploader("2. Dettagli Impianti (Facoltativo)", type=['xlsx', 'csv'])
 
 if uploaded_file:
     try:
-        # 2. LETTURA
+        # --- 2. LETTURA DATASET PRINCIPALE ---
         if uploaded_file.name.endswith('.xlsx'):
             df_raw = pd.read_excel(uploaded_file)
         else:
             df_raw = pd.read_csv(uploaded_file, sep=None, engine='python')
 
-        # 3. LOGICA DI PULIZIA
+        # --- 3. LOGICA DI PULIZIA E UNPIVOT ---
         df_raw = df_raw.dropna(how='all', axis=1)
         col_id = df_raw.columns[0]
         df_raw = df_raw.rename(columns={col_id: 'Codice_Impianto'})
@@ -63,17 +69,47 @@ if uploaded_file:
             df_finale['Valore'] = pd.to_numeric(df_finale['Valore'].astype(str).str.replace(',', '.'), errors='coerce')
             df_finale = df_finale.dropna(subset=['Codice_Impianto', 'Valore'])
             df_finale = df_finale.rename(columns={'Orario_Clean': 'Orario'})
-            df_finale = df_finale[['Codice_Impianto', 'Data', 'Orario', 'Valore']].sort_values(by=['Codice_Impianto', 'Data', 'Orario'])
+            
+            # --- 4. IMPLEMENTAZIONE FACOLTATIVA DETTAGLI (LAT/LONG) ---
+            if details_file:
+                try:
+                    if details_file.name.endswith('.xlsx'):
+                        df_details = pd.read_excel(details_file)
+                    else:
+                        df_details = pd.read_csv(details_file, sep=None, engine='python')
+                    
+                    # Identifichiamo la colonna ID del secondo file (assumiamo sia la prima)
+                    col_id_details = df_details.columns[0]
+                    df_details = df_details.rename(columns={col_id_details: 'Codice_Impianto'})
+                    
+                    # Selezioniamo solo le colonne che ci servono per evitare doppioni
+                    # Cerchiamo le colonne Lat e Long indipendentemente dalle minuscole/maiuscole
+                    df_details.columns = [c.capitalize() if c.lower() in ['lat', 'long'] else c for c in df_details.columns]
+                    
+                    if 'Lat' in df_details.columns and 'Long' in df_details.columns:
+                        df_subset = df_details[['Codice_Impianto', 'Lat', 'Long']]
+                        # Join (VLOOKUP) tra il dataset pulito e i dettagli
+                        df_finale = pd.merge(df_finale, df_subset, on='Codice_Impianto', how='left')
+                        st.info("📍 Coordinate Lat/Long aggiunte con successo.")
+                    else:
+                        st.warning("Attenzione: Colonne 'Lat' o 'Long' non trovate nel file dettagli.")
+                except Exception as e_details:
+                    st.error(f"Errore nel caricamento dettagli: {e_details}")
 
-            # 4. DOWNLOAD DEL RISULTATO
+            # Riordino colonne finale (dinamico se Lat/Long esistono)
+            cols_to_keep = ['Codice_Impianto', 'Data', 'Orario', 'Valore']
+            if 'Lat' in df_finale.columns: cols_to_keep.extend(['Lat', 'Long'])
+            
+            df_finale = df_finale[cols_to_keep].sort_values(by=['Codice_Impianto', 'Data', 'Orario'])
+
+            # --- 5. DOWNLOAD DEL RISULTATO ---
             st.success(f"HA FUNZIONATO! Estratti {len(df_finale)} record.")
             
-            # Prepariamo il CSV per il download
             csv_buffer = io.StringIO()
             df_finale.to_csv(csv_buffer, index=False, sep=';', decimal=',')
             
             st.download_button(
-                label=" SCARICA IL DATSETTINO",
+                label="📥 SCARICA IL DATSETTINO",
                 data=csv_buffer.getvalue(),
                 file_name="Datasettino_Pulito.csv",
                 mime="text/csv"
