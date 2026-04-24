@@ -17,7 +17,7 @@ with col1:
     uploaded_file = st.file_uploader("1. Datasettone VIOOH (Obbligatorio)", type=['xlsx', 'csv'])
 
 with col2:
-    details_file = st.file_uploader("2. Dettagli Impianti - 2 Fogli (Facoltativo)", type=['xlsx'])
+    details_file = st.file_uploader("2. Dettagli Impianti (Facoltativo)", type=['xlsx'])
 
 # --- 2. BOTTONE DI INVIO ---
 if uploaded_file:
