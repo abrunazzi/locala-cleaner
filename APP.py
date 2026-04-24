@@ -119,4 +119,4 @@ if uploaded_file:
         except Exception as e:
             st.error(f"Si è verificato un errore: {e}")
 else:
-    st.info("Carica il file principale per sbloccare l'elaborazione.")
+    st.info("Carica il file principale.")
