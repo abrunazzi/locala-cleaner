@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Locala Data Cleaner", page_icon=" 🦆 ")
 
 st.title("Collasso di Dataset Locala")
-st.markdown("Carica i file necessari e clicca su **Avvia Elaborazione**.")
+st.markdown("Carica i file necessari per **Aviare Elaborazione**.")
 
 # --- 1. CARICAMENTO FILE ---
 col1, col2 = st.columns(2)
@@ -17,10 +17,9 @@ with col1:
     uploaded_file = st.file_uploader("1. Datasettone VIOOH (Obbligatorio)", type=['xlsx', 'csv'])
 
 with col2:
-    details_file = st.file_uploader("2. Dettagli Impianti (Facoltativo)", type=['xlsx', 'csv'])
+    details_file = st.file_uploader("2. Dettagli Impianti - 2 Fogli (Facoltativo)", type=['xlsx'])
 
 # --- 2. BOTTONE DI INVIO ---
-# Il bottone compare solo se almeno il primo file è stato caricato
 if uploaded_file:
     if st.button("🦆 AVVIA ELABORAZIONE", use_container_width=True):
         try:
@@ -74,26 +73,25 @@ if uploaded_file:
                     df_finale = df_finale.dropna(subset=['Codice_Impianto', 'Valore'])
                     df_finale = df_finale.rename(columns={'Orario_Clean': 'Orario'})
                     
-                    # --- 5. AGGIUNTA COORDINATE (Se presente il secondo file) ---
+                    # --- 5. AGGIUNTA COORDINATE (Lettura dal 2° Foglio) ---
                     if details_file:
-                        if details_file.name.endswith('.xlsx'):
-                            df_details = pd.read_excel(details_file)
-                        else:
-                            df_details = pd.read_csv(details_file, sep=None, engine='python')
+                        # Leggiamo esplicitamente il secondo foglio (index 1)
+                        df_details = pd.read_excel(details_file, sheet_name=1)
                         
                         # Normalizzazione colonne dettagli
                         col_id_details = df_details.columns[0]
                         df_details = df_details.rename(columns={col_id_details: 'Codice_Impianto'})
+                        
                         # Cerchiamo Lat e Long ignorando maiuscole/minuscole
                         df_details.columns = [c.capitalize() if c.lower() in ['lat', 'long'] else c for c in df_details.columns]
                         
                         if 'Lat' in df_details.columns and 'Long' in df_details.columns:
                             df_subset = df_details[['Codice_Impianto', 'Lat', 'Long']]
-                            # Join left: teniamo tutti i dati originali e aggiungiamo le coordinate dove possibile
+                            # Merge per aggiungere i dati geografici
                             df_finale = pd.merge(df_finale, df_subset, on='Codice_Impianto', how='left')
-                            st.info(" Coordinate geografiche integrate correttamente.")
+                            st.info("Coordinate integrate ")
                         else:
-                            st.warning(" Colonne 'Lat' o 'Long' non trovate nel file dettagli.")
+                            st.warning(" Colonne 'Lat' o 'Long' non trovate nel secondo foglio del file dettagli.")
 
                     # Selezione finale colonne
                     cols_to_keep = ['Codice_Impianto', 'Data', 'Orario', 'Valore']
@@ -103,13 +101,13 @@ if uploaded_file:
                     df_finale = df_finale[cols_to_keep].sort_values(by=['Codice_Impianto', 'Data', 'Orario'])
 
                     # --- 6. RISULTATO E DOWNLOAD ---
-                    st.success(f" Elaborazione completata! Estratti {len(df_finale)} record.")
+                    st.success(f" 🦆 Elaborazione completata! Estratti {len(df_finale)} record.")
                     
                     csv_buffer = io.StringIO()
                     df_finale.to_csv(csv_buffer, index=False, sep=';', decimal=',')
                     
                     st.download_button(
-                        label=" SCARICA IL FILE CSV",
+                        label=" 🦆 SCARICA IL FILE CSV",
                         data=csv_buffer.getvalue(),
                         file_name="Dataset_Locala_Pulito.csv",
                         mime="text/csv",
@@ -119,6 +117,6 @@ if uploaded_file:
                     st.error("Nessun dato orario valido trovato nel file.")
 
         except Exception as e:
-            st.error(f"Si è verificato un errore critico: {e}")
+            st.error(f"Si è verificato un errore: {e}")
 else:
-    st.info("In attesa del file principale per iniziare...")
+    st.info("Carica il file principale per sbloccare l'elaborazione.")
