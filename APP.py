@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Locala Data Cleaner", page_icon=" 🦆 ")
 
 st.title("Collasso di Dataset Locala")
-st.markdown("Carica i file necessari per **Aviare Elaborazione**.")
+st.markdown("Carica i file necessari per **Avviare Elaborazione**.")
 
 # --- 1. CARICAMENTO FILE ---
 col1, col2 = st.columns(2)
